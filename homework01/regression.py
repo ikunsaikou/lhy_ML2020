@@ -3,7 +3,7 @@ import numpy as np
 import csv
 import matplotlib.pyplot as plt
 
-data = pd.read_csv('../homework01/dataset/train.csv', encoding = 'big5')
+data = pd.read_csv('../homework01/dataset/train.csv', encoding='big5')
 
 data = data.iloc[:, 3:]
 
@@ -13,7 +13,7 @@ raw_data = data.to_numpy()
 # 提取特征 维度转化 12*18*20*24的math_data
 month_data = np.zeros((12, 18, 480))
 for month in range(12):
-    sample = np.zeros([18, 480]) #18个检测量，一个月取20天*24小时
+    sample = np.zeros([18, 480])  # 18个检测量，一个月取20天*24小时
     for day in range(20):
         # sample选取18行，每天的0-23列.后面的raw_data取该天的18个检测值的24小时的数据
         sample[:, day * 24 : (day + 1) * 24] = raw_data[18 * (20 * month + day) : 18 * (20 * month + day + 1), :]
@@ -38,7 +38,7 @@ std_td = np.std(train_data, axis = 0)
 for i in range(len(train_data)):
     for j in range(len(train_data[0])):
         if std_td[j] != 0:
-            train_data[i][j] = (train_data[i][j] - mean_td[j]) / std_td[j];
+            train_data[i][j] = (train_data[i][j] - mean_td[j]) / std_td[j]
 
 
 # training
@@ -86,12 +86,9 @@ for i in range(len(test_x)):
         if std_td[j] != 0:
             test_x[i][j] = (test_x[i][j] - mean_td[j]) / std_td[j]
 test_x = np.concatenate((np.ones([240, 1]), test_x), axis = 1).astype(float)
-test_x
 
 w = np.load('weight.npy')
 ans_y = np.dot(test_x, w)
-ans_y
-
 
 #写文件
 with open('submit.csv', mode='w', newline='') as submit_file:
