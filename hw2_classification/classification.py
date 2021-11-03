@@ -125,7 +125,7 @@ def _gradient(X, Y_label, w, b):
     # 关于weight w和bias b, 用交叉熵损失计算梯度.
     y_pred = _f(X, w, b)  # 对率回归
     pred_error = Y_label - y_pred  # 误差
-    w_grad = -np.sum(pred_error * X.T, 1)  # sum参数axis=1是压缩列,即将每一行的元素相加,将矩阵压缩为一列
+    w_grad = -np.sum(pred_error * X.T, 1)  # sum参数axis=1是压缩列,即将每一列的元素相加
     b_grad = -np.sum(pred_error)
     return w_grad, b_grad
 

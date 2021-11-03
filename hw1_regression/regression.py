@@ -3,7 +3,7 @@ import numpy as np
 import csv
 import matplotlib.pyplot as plt
 
-data = pd.read_csv('../homework01/dataset/train.csv', encoding='big5')
+data = pd.read_csv('/dataset/train.csv', encoding='big5')
 
 data = data.iloc[:, 3:]
 
@@ -74,7 +74,7 @@ plt.show()
 
 # 训练集读入与处理
 
-test_data = pd.read_csv('../homework01/dataset/test.csv', header = None, encoding = 'big5')
+test_data = pd.read_csv('/dataset/test.csv', header = None, encoding ='big5')
 test_data = test_data.iloc[:, 2:]
 test_data[test_data == 'NR'] = 0
 test_data = test_data.to_numpy()
