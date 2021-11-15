@@ -4,11 +4,8 @@ import cv2
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
-import pandas as pd
 from torch.utils.data import DataLoader, Dataset
 import time
-
-from torch.utils.data.dataset import T_co
 
 
 def readfile(path, label):
@@ -24,30 +21,6 @@ def readfile(path, label):
         return x, y
     else:
         return x
-
-
-print("reading data...")
-workspace_dir = './food-11'
-train_x, train_y = readfile(os.path.join(workspace_dir, "training"), True)
-print(f'size of training data: {len(train_x)}')
-val_x, val_y = readfile(os.path.join(workspace_dir, "validation"), True)
-print(f'size of val data: {len(val_x)}')
-test_x = readfile(os.path.join(workspace_dir, "testing"), False)
-print(f'size of test data: {len(test_x)}')
-
-# 数据增强，将图片进行变换后作为训练数据
-# 调用时会compose类遍历每个列表，对图片依次进行列表中的变换后返回
-train_transform = transforms.Compose([
-    transforms.ToPILImage(),
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(15),
-    transforms.ToTensor(),  # 转换为张量返回
-])
-
-test_transform = transforms.Compose([
-    transforms.ToPILImage(),
-    transforms.ToTensor()
-])
 
 
 # 重写dataset类
@@ -71,13 +44,6 @@ class ImgDataset(Dataset):
             return X, Y
         else:
             return X
-
-
-batch_size = 128
-train_set = ImgDataset(train_x, train_y, train_transform)
-val_set = ImgDataset(val_x, val_y, test_transform)
-train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
-val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False)
 
 
 class Classifier(nn.Module):
@@ -115,16 +81,14 @@ class Classifier(nn.Module):
             nn.Conv2d(512, 512, 3, 1, 1),
             nn.BatchNorm2d(512),
             nn.ReLU(),
-            nn.MaxPool2d(2, 2, 0)  # 4*4
+            nn.MaxPool2d(2, 2, 0)  # 512*4*4
         )
 
         # 用全连接层降维
         self.fc = nn.Sequential(
             nn.Linear(512 * 4 * 4, 1024),  # 该线性全连接层将通过5层后的512 * 4 * 4 降维乘1024
             nn.ReLU(),
-            nn.Linear(1024, 512),  # 1024 降维至512
-            nn.ReLU(),
-            nn.Linear(512, 11)  # 512 降维至11个类别
+            nn.Linear(1024, 11),  # 1024 降维至11
         )
 
     def forward(self, x):  # 这里由于继承了nn.module类。会在call方法中调用该方法
@@ -132,6 +96,37 @@ class Classifier(nn.Module):
         out = out.view(out.size()[0], -1)  # 转换成全连接网络的数据
         return self.fc(out)
 
+
+# 数据增强，将图片进行变换后作为训练数据
+# 调用时会compose类遍历每个列表，对图片依次进行列表中的变换后返回
+train_transform = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomRotation(15),
+    transforms.ToTensor(),  # 转换为张量返回
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+])
+
+test_transform = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+])
+
+print("reading data...")
+workspace_dir = './food-11'
+train_x, train_y = readfile(os.path.join(workspace_dir, "training"), True)
+print(f'size of training data: {len(train_x)}')
+val_x, val_y = readfile(os.path.join(workspace_dir, "validation"), True)
+print(f'size of val data: {len(val_x)}')
+test_x = readfile(os.path.join(workspace_dir, "testing"), False)
+print(f'size of test data: {len(test_x)}')
+
+batch_size = 128
+train_set = ImgDataset(train_x, train_y, train_transform)
+val_set = ImgDataset(val_x, val_y, test_transform)
+train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
+val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False)
 
 model = Classifier().cuda()
 loss = nn.CrossEntropyLoss()
